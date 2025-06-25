@@ -96,7 +96,7 @@ macro_rules! declare_sol_loader_stubs {
             caccount_infos: *mut CAccountInfoSlice,
             csigners_seeds: CBytesArrayArray,
         ) -> i64 {
-            let instruction = CInstruction::to_instruction(&cinstruction);
+            let instruction = Instruction::from(cinstruction);
             let signers_seeds = CBytesArrayArray::to_array_array_array(&csigners_seeds);
             let signers_seeds = &CBytesArrayArray::convert(&signers_seeds)[..];
             let account_infos = &CAccountInfoSlice::reconstruct_account_infos(caccount_infos)[..];

@@ -2,34 +2,39 @@
 macro_rules! common_stub_types {
     () => {
         #[repr(C)]
-        pub struct CInstruction {
+        pub struct CInstruction<'a> {
             pub program_id: [u8; 32],
             pub accounts_ptr: *const AccountMeta,
             pub accounts_len: usize,
             pub data_ptr: *const u8,
             pub data_len: usize,
+            // single thread only, tie to 'a lifetime
+            marker: std::marker::PhantomData<&'a *const ()>,
         }
 
-        impl CInstruction {
-            pub fn from(instr: &Instruction) -> Self {
+        impl<'a> From<&'a Instruction> for CInstruction<'a> {
+            fn from(instruction: &'a Instruction) -> Self {
                 CInstruction {
-                    program_id: instr.program_id.to_bytes(),
-                    accounts_ptr: instr.accounts.as_ptr(),
-                    accounts_len: instr.accounts.len(),
-                    data_ptr: instr.data.as_ptr(),
-                    data_len: instr.data.len(),
+                    program_id: instruction.program_id.to_bytes(),
+                    accounts_ptr: instruction.accounts.as_ptr(),
+                    accounts_len: instruction.accounts.len(),
+                    data_ptr: instruction.data.as_ptr(),
+                    data_len: instruction.data.len(),
+                    marker: std::marker::PhantomData,
                 }
             }
+        }
 
-            pub fn to_instruction(cinstr: &CInstruction) -> Instruction {
+        impl<'a> From<CInstruction<'a>> for Instruction {
+            fn from(cinstruction: CInstruction) -> Self {
                 let accounts: Vec<AccountMeta> = Vec::from(unsafe {
-                    std::slice::from_raw_parts(cinstr.accounts_ptr as *mut _, cinstr.accounts_len)
+                    std::slice::from_raw_parts(cinstruction.accounts_ptr, cinstruction.accounts_len)
                 });
                 let data = Vec::from(unsafe {
-                    std::slice::from_raw_parts(cinstr.data_ptr as *mut _, cinstr.data_len)
+                    std::slice::from_raw_parts(cinstruction.data_ptr, cinstruction.data_len)
                 });
                 Instruction {
-                    program_id: Pubkey::new_from_array(cinstr.program_id),
+                    program_id: Pubkey::new_from_array(cinstruction.program_id),
                     accounts,
                     data,
                 }
