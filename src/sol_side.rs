@@ -59,8 +59,7 @@ macro_rules! declare_sol_app_stubs {
                 // }
                 // // TEST
                 let cinstr = CInstruction::from(instruction);
-                let (mut caccountinfos, _vcacountinfo) =
-                    CAccountInfoSlice::to_c_account_info_slice(&account_infos);
+                let (mut caccountinfos, _vcacountinfo) = CAccountInfoSlice::from(&account_infos);
                 let caccountinfos = &mut caccountinfos as *mut _;
                 let cbytesarrayarray = CBytesArrayArray::from(&signers_seeds);
                 for ai in account_infos.iter() {
