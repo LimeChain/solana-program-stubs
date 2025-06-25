@@ -45,7 +45,7 @@ macro_rules! declare_sol_loader_stubs {
                 _instruction: &Instruction,
                 _account_infos: &[AccountInfo],
                 _signers_seeds: &[&[&[u8]]],
-            ) -> solana_sdk::entrypoint::ProgramResult {
+            ) -> ProgramResult {
                 unimplemented!()
             }
             fn sol_log(&self, _message: &str) {
