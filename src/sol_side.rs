@@ -1,9 +1,6 @@
 #[macro_export]
 macro_rules! declare_sol_app_stubs {
     ($entry_function:expr) => {
-        use solana_program::instruction::AccountMeta;
-        use solana_program::instruction::Instruction;
-
         $crate::common_stub_types!();
 
         #[repr(C)]
