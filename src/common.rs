@@ -117,13 +117,14 @@ macro_rules! common_stub_types {
         }
 
         #[repr(C)]
-        pub struct CAccountInfoSlice {
-            pub ptr: *const CAccountInfo,
+        pub struct CAccountInfoSlice<'a, 'b> {
+            pub ptr: *const CAccountInfo<'b>,
             pub len: usize,
+            marker: std::marker::PhantomData<&'a *const ()>,
         }
 
         #[repr(C)]
-        pub struct CAccountInfo {
+        pub struct CAccountInfo<'b> {
             pub key: *const u8, // [u8; 32]
             pub lamports: *mut u64,
             pub data: *mut u8,
@@ -133,11 +134,14 @@ macro_rules! common_stub_types {
             pub is_signer: bool,
             pub is_writable: bool,
             pub executable: bool,
+            marker: std::marker::PhantomData<&'b *const ()>,
         }
 
-        impl CAccountInfoSlice {
+        impl<'a, 'b> CAccountInfoSlice<'a, 'b> {
             #[allow(dead_code)]
-            fn from<'a, 'b>(ais: &'a [AccountInfo<'b>]) -> (CAccountInfoSlice, Vec<CAccountInfo>) {
+            fn from(
+                ais: &'a [AccountInfo<'b>],
+            ) -> (CAccountInfoSlice<'a, 'b>, Vec<CAccountInfo<'b>>) {
                 let mut c_infos = Vec::with_capacity(ais.len());
 
                 for ai in ais {
@@ -154,20 +158,22 @@ macro_rules! common_stub_types {
                         is_signer: ai.is_signer,
                         is_writable: ai.is_writable,
                         executable: ai.executable,
+                        marker: std::marker::PhantomData,
                     });
                 }
 
                 let slice = CAccountInfoSlice {
                     ptr: c_infos.as_ptr(),
                     len: c_infos.len(),
+                    marker: std::marker::PhantomData,
                 };
 
                 (slice, c_infos)
             }
 
-            pub fn reconstruct_account_infos(
-                slice: *mut CAccountInfoSlice,
-            ) -> Vec<AccountInfo<'static>> {
+            pub fn to_vec_account_infos(
+                slice: *mut CAccountInfoSlice<'a, 'b>,
+            ) -> Vec<AccountInfo<'b>> {
                 let mut result = unsafe { Vec::with_capacity((*slice).len) };
 
                 unsafe {
