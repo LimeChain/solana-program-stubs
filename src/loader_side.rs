@@ -1,3 +1,4 @@
+/// This macro exports a global alternative container to ProgramTest's SYSCALL_STUBS
 #[macro_export]
 macro_rules! declare_sol_loader_stubs {
     () => {
