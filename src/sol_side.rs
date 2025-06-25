@@ -58,9 +58,10 @@ macro_rules! declare_sol_app_stubs {
                 //     Box::leak(Box::new(Rc::clone(&ai.data)));
                 // }
                 // // TEST
-                let cinstr = CInstruction::from(&instruction);
-                let caccountinfos =
-                    &mut CAccountInfoSlice::to_c_account_info_slice(&account_infos) as *mut _;
+                let cinstr = CInstruction::from(instruction);
+                let (mut caccountinfos, _vcacountinfo) =
+                    CAccountInfoSlice::to_c_account_info_slice(&account_infos);
+                let caccountinfos = &mut caccountinfos as *mut _;
                 let cbytesarrayarray = CBytesArrayArray::from(&signers_seeds);
                 for ai in account_infos.iter() {
                     println!("FAV BEFORE ai: {} -> lamports: {}", ai.key, ai.lamports());

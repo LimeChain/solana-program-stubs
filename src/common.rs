@@ -137,7 +137,9 @@ macro_rules! common_stub_types {
 
         impl CAccountInfoSlice {
             #[allow(dead_code)]
-            fn to_c_account_info_slice<'a, 'b>(ais: &'a [AccountInfo<'b>]) -> CAccountInfoSlice {
+            fn to_c_account_info_slice<'a, 'b>(
+                ais: &'a [AccountInfo<'b>],
+            ) -> (CAccountInfoSlice, Vec<CAccountInfo>) {
                 let mut c_infos = Vec::with_capacity(ais.len());
 
                 for ai in ais {
@@ -162,9 +164,7 @@ macro_rules! common_stub_types {
                     len: c_infos.len(),
                 };
 
-                // TODO: Fix - leak to preserve it.
-                c_infos.leak();
-                slice
+                (slice, c_infos)
             }
 
             pub fn reconstruct_account_infos(
