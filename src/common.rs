@@ -3,7 +3,7 @@ macro_rules! common_stub_types {
     () => {
         #[repr(C)]
         pub struct CInstruction<'a> {
-            pub program_id: Pubkey,
+            pub program_id: *const u8,
             pub accounts_ptr: *const AccountMeta,
             pub accounts_len: usize,
             pub data_ptr: *const u8,
@@ -15,7 +15,7 @@ macro_rules! common_stub_types {
         impl<'a> From<&'a Instruction> for CInstruction<'a> {
             fn from(instruction: &'a Instruction) -> Self {
                 CInstruction {
-                    program_id: instruction.program_id,
+                    program_id: instruction.program_id.as_ref().as_ptr(),
                     accounts_ptr: instruction.accounts.as_ptr(),
                     accounts_len: instruction.accounts.len(),
                     data_ptr: instruction.data.as_ptr(),
@@ -34,7 +34,7 @@ macro_rules! common_stub_types {
                     std::slice::from_raw_parts(cinstruction.data_ptr, cinstruction.data_len)
                 });
                 Instruction {
-                    program_id: cinstruction.program_id,
+                    program_id: unsafe { *(cinstruction.program_id as *const Pubkey) },
                     accounts,
                     data,
                 }
@@ -136,11 +136,11 @@ macro_rules! common_stub_types {
 
         #[repr(C)]
         pub struct CAccountInfo<'b> {
-            pub key: Pubkey, // [u8; 32]
+            pub key: *const u8, // [u8; 32]
             pub lamports: *mut u64,
             pub data: *mut u8,
             pub data_len: usize,
-            pub owner: Pubkey, // [u8; 32]
+            pub owner: *const u8, // [u8; 32]
             pub rent_epoch: u64,
             pub is_signer: bool,
             pub is_writable: bool,
@@ -160,11 +160,11 @@ macro_rules! common_stub_types {
                     let data_ref = &mut *ai.data.borrow_mut();
 
                     c_infos.push(CAccountInfo {
-                        key: ai.key.clone(),
+                        key: ai.key.as_ref().as_ptr(),
                         lamports: *lamports_ref as *mut u64,
                         data: data_ref.as_mut_ptr(),
                         data_len: data_ref.len(),
-                        owner: ai.owner.clone(),
+                        owner: ai.owner.as_ref().as_ptr(),
                         rent_epoch: ai.rent_epoch,
                         is_signer: ai.is_signer,
                         is_writable: ai.is_writable,
@@ -198,10 +198,10 @@ macro_rules! common_stub_types {
                         ));
 
                         result.push(AccountInfo {
-                            key: &(**cai).key,
+                            key: &*((**cai).key as *const Pubkey),
                             lamports,
                             data,
-                            owner: &(**cai).owner,
+                            owner: &*((**cai).owner as *const Pubkey),
                             rent_epoch: (**cai).rent_epoch,
                             is_signer: (**cai).is_signer,
                             is_writable: (**cai).is_writable,
