@@ -42,25 +42,28 @@ macro_rules! common_stub_types {
         }
 
         #[repr(C)]
-        pub struct CBytes {
+        pub struct CBytes<'a> {
             pub ptr: *const u8,
             pub len: usize,
+            marker: std::marker::PhantomData<&'a *const ()>,
         }
 
         #[repr(C)]
-        pub struct CBytesArray {
-            pub ptr: *const CBytes,
+        pub struct CBytesArray<'a> {
+            pub ptr: *const CBytes<'a>,
             pub len: usize,
+            marker: std::marker::PhantomData<&'a *const ()>,
         }
 
         #[repr(C)]
-        pub struct CBytesArrayArray {
-            pub ptr: *const CBytesArray,
+        pub struct CBytesArrayArray<'a> {
+            pub ptr: *const CBytesArray<'a>,
             pub len: usize,
+            marker: std::marker::PhantomData<&'a *const ()>,
         }
 
-        impl CBytesArrayArray {
-            pub fn from(input: &[&[&[u8]]]) -> CBytesArrayArray {
+        impl<'a> CBytesArrayArray<'a> {
+            pub fn from(input: &'a [&'a [&'a [u8]]]) -> CBytesArrayArray<'a> {
                 let mut outer = Vec::new();
                 let mut all_cbytes = Vec::new(); // To hold all CBytes flat
 
@@ -70,6 +73,7 @@ macro_rules! common_stub_types {
                         inner_cbytes.push(CBytes {
                             ptr: slice.as_ptr(),
                             len: slice.len(),
+                            marker: std::marker::PhantomData,
                         });
                     }
 
@@ -79,6 +83,7 @@ macro_rules! common_stub_types {
                     outer.push(CBytesArray {
                         ptr: inner_ptr,
                         len: inner.len(),
+                        marker: std::marker::PhantomData,
                     });
                 }
 
@@ -91,10 +96,11 @@ macro_rules! common_stub_types {
                 CBytesArrayArray {
                     ptr: outer_ptr,
                     len: input.len(),
+                    marker: std::marker::PhantomData,
                 }
             }
 
-            pub fn to_array_array_array(c: &CBytesArrayArray) -> Vec<Vec<&[u8]>> {
+            pub fn to_array_array_array(c: &'a CBytesArrayArray) -> Vec<Vec<&'a [u8]>> {
                 let mut result = Vec::new();
                 for i in 0..c.len {
                     let c_inner = unsafe { &*c.ptr.add(i) };
@@ -111,7 +117,7 @@ macro_rules! common_stub_types {
                 result
             }
 
-            pub fn convert<'a>(input: &'a Vec<Vec<&'a [u8]>>) -> Vec<&'a [&'a [u8]]> {
+            pub fn convert(input: &'a Vec<Vec<&'a [u8]>>) -> Vec<&'a [&'a [u8]]> {
                 input.iter().map(|inner| inner.as_slice()).collect()
             }
         }
