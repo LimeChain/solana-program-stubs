@@ -3,7 +3,7 @@ macro_rules! common_stub_types {
     () => {
         #[repr(C)]
         pub struct CInstruction<'a> {
-            pub program_id: *const u8,
+            pub program_id: Pubkey,
             pub accounts_ptr: *const AccountMeta,
             pub accounts_len: usize,
             pub data_ptr: *const u8,
@@ -15,7 +15,7 @@ macro_rules! common_stub_types {
         impl<'a> From<&'a Instruction> for CInstruction<'a> {
             fn from(instruction: &'a Instruction) -> Self {
                 CInstruction {
-                    program_id: instruction.program_id.as_ref().as_ptr(),
+                    program_id: instruction.program_id,
                     accounts_ptr: instruction.accounts.as_ptr(),
                     accounts_len: instruction.accounts.len(),
                     data_ptr: instruction.data.as_ptr(),
@@ -34,7 +34,7 @@ macro_rules! common_stub_types {
                     std::slice::from_raw_parts(cinstruction.data_ptr, cinstruction.data_len)
                 });
                 Instruction {
-                    program_id: unsafe { *(cinstruction.program_id as *const Pubkey) },
+                    program_id: cinstruction.program_id,
                     accounts,
                     data,
                 }
@@ -169,10 +169,12 @@ macro_rules! common_stub_types {
 
         #[repr(C)]
         pub struct CAccountInfo<'b> {
+            // A &Pubkey must map to *const u8
             pub key: *const u8, // [u8; 32]
             pub lamports: *mut u64,
             pub data: *mut u8,
             pub data_len: usize,
+            // A &Pubkey must map to *const u8
             pub owner: *const u8, // [u8; 32]
             pub rent_epoch: u64,
             pub is_signer: bool,
