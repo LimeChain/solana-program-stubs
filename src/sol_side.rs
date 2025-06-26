@@ -106,9 +106,10 @@ macro_rules! declare_sol_app_stubs {
             fn sol_log_compute_units(&self) {
                 (self.stubs_api.sol_log_compute_units)();
             }
-            fn sol_log_data(&self, _fields: &[&[u8]]) {
+            fn sol_log_data(&self, data: &[&[u8]]) {
                 println!("sol_log_data called!");
-                unimplemented!()
+                let (cbytesarray, _vcbytes) = CBytesArray::from(data);
+                (self.stubs_api.sol_log_data)(cbytesarray)
             }
             unsafe fn sol_memcmp(&self, s1: *const u8, s2: *const u8, n: usize, result: *mut i32) {
                 (self.stubs_api.sol_memcmp)(s1, s2, n, result);

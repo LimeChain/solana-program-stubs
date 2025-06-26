@@ -55,6 +55,39 @@ macro_rules! common_stub_types {
             marker: std::marker::PhantomData<&'a *const ()>,
         }
 
+        impl<'a> CBytesArray<'a> {
+            pub fn from(input: &'a [&'a [u8]]) -> (CBytesArray<'a>, Vec<CBytes<'a>>) {
+                let mut all_cbytes = Vec::new();
+
+                for slice in input {
+                    all_cbytes.push(CBytes {
+                        ptr: slice.as_ptr(),
+                        len: slice.len(),
+                        marker: std::marker::PhantomData,
+                    });
+                }
+
+                (
+                    CBytesArray {
+                        ptr: all_cbytes.as_ptr(),
+                        len: all_cbytes.len(),
+                        marker: std::marker::PhantomData,
+                    },
+                    all_cbytes,
+                )
+            }
+
+            pub fn to_array_array(c: &'a CBytesArray) -> Vec<&'a [u8]> {
+                let mut result = Vec::new();
+                for i in 0..c.len {
+                    let c_inner = unsafe { &*c.ptr.add(i) };
+                    let slice = unsafe { std::slice::from_raw_parts(c_inner.ptr, c_inner.len) };
+                    result.push(slice);
+                }
+                result
+            }
+        }
+
         #[repr(C)]
         pub struct CBytesArrayArray<'a> {
             pub ptr: *const CBytesArray<'a>,
@@ -235,7 +268,7 @@ macro_rules! common_stub_types {
             pub sol_memset: extern "C" fn(s: *mut u8, c: u8, n: usize),
             pub sol_get_return_data: extern "C" fn() -> CReturnData,
             pub sol_set_return_data: extern "C" fn(data_ptr: *const u8, len: usize),
-            // pub sol_log_data: extern "C" fn(data: &[&[u8]]),
+            pub sol_log_data: extern "C" fn(data: CBytesArray),
             // pub sol_get_processed_sibling_instruction: extern "C" fn(index: usize) -> Option<Instruction>,
             pub sol_get_stack_height: extern "C" fn() -> u64,
             pub sol_get_epoch_rewards_sysvar: extern "C" fn(var_addr: *mut u8) -> u64,

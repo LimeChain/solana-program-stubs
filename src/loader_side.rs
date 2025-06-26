@@ -197,9 +197,9 @@ macro_rules! declare_sol_loader_stubs {
             SYSCALL_STUBS.read().unwrap().sol_set_return_data(data)
         }
 
-        // TODO
-        pub extern "C" fn sol_log_data(data: &[&[u8]]) {
-            SYSCALL_STUBS.read().unwrap().sol_log_data(data)
+        pub extern "C" fn sol_log_data(data: CBytesArray) {
+            let arr_arr = CBytesArray::to_array_array(&data);
+            SYSCALL_STUBS.read().unwrap().sol_log_data(&arr_arr[..])
         }
 
         // TODO
@@ -240,6 +240,7 @@ macro_rules! declare_sol_loader_stubs {
                     sol_remaining_compute_units: sol_remaining_compute_units,
                     sol_get_return_data: sol_get_return_data,
                     sol_set_return_data: sol_set_return_data,
+                    sol_log_data: sol_log_data,
                     sol_invoke_signed: sol_invoke_signed,
                 }
             }
