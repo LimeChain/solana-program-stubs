@@ -3,7 +3,7 @@ macro_rules! common_stub_types {
     () => {
         #[repr(C)]
         pub struct CInstruction<'a> {
-            pub program_id: *const u8,
+            pub program_id: Pubkey,
             pub accounts_ptr: *const AccountMeta,
             pub accounts_len: usize,
             pub data_ptr: *const u8,
@@ -15,7 +15,7 @@ macro_rules! common_stub_types {
         impl<'a> From<&'a Instruction> for CInstruction<'a> {
             fn from(instruction: &'a Instruction) -> Self {
                 CInstruction {
-                    program_id: instruction.program_id.as_ref().as_ptr(),
+                    program_id: instruction.program_id,
                     accounts_ptr: instruction.accounts.as_ptr(),
                     accounts_len: instruction.accounts.len(),
                     data_ptr: instruction.data.as_ptr(),
@@ -34,7 +34,7 @@ macro_rules! common_stub_types {
                     std::slice::from_raw_parts(cinstruction.data_ptr, cinstruction.data_len)
                 });
                 Instruction {
-                    program_id: unsafe { *(cinstruction.program_id as *const Pubkey) },
+                    program_id: cinstruction.program_id,
                     accounts,
                     data,
                 }
@@ -136,11 +136,11 @@ macro_rules! common_stub_types {
 
         #[repr(C)]
         pub struct CAccountInfo<'b> {
-            pub key: *const u8, // [u8; 32]
+            pub key: Pubkey, // [u8; 32]
             pub lamports: *mut u64,
             pub data: *mut u8,
             pub data_len: usize,
-            pub owner: *const u8, // [u8; 32]
+            pub owner: Pubkey, // [u8; 32]
             pub rent_epoch: u64,
             pub is_signer: bool,
             pub is_writable: bool,
@@ -160,11 +160,11 @@ macro_rules! common_stub_types {
                     let data_ref = &mut *ai.data.borrow_mut();
 
                     c_infos.push(CAccountInfo {
-                        key: ai.key.as_ref().as_ptr(),
+                        key: ai.key.clone(),
                         lamports: *lamports_ref as *mut u64,
                         data: data_ref.as_mut_ptr(),
                         data_len: data_ref.len(),
-                        owner: ai.owner.as_ref().as_ptr(),
+                        owner: ai.owner.clone(),
                         rent_epoch: ai.rent_epoch,
                         is_signer: ai.is_signer,
                         is_writable: ai.is_writable,
@@ -198,10 +198,10 @@ macro_rules! common_stub_types {
                         ));
 
                         result.push(AccountInfo {
-                            key: &*((**cai).key as *const Pubkey),
+                            key: &(**cai).key,
                             lamports,
                             data,
-                            owner: &*((**cai).owner as *const Pubkey),
+                            owner: &(**cai).owner,
                             rent_epoch: (**cai).rent_epoch,
                             is_signer: (**cai).is_signer,
                             is_writable: (**cai).is_writable,
@@ -243,26 +243,31 @@ macro_rules! common_stub_types {
 
         #[repr(C)]
         pub struct CReturnData {
-            pub pubkey: *const u8,
+            pub pubkey: Pubkey,
             pub data_ptr: *const u8,
             pub data_len: usize,
+            pub cap: usize,
             pub has_data: bool, // whether return data exists
         }
 
         impl CReturnData {
-            pub fn from(ret_data: &Option<(Pubkey, Vec<u8>)>) -> CReturnData {
-                if let Some((pubkey, data)) = ret_data {
+            pub fn from(ret_data: Option<(Pubkey, Vec<u8>)>) -> CReturnData {
+                if let Some((pubkey, v)) = ret_data {
+                    let (data_ptr, data_len, cap) = (v.as_ptr(), v.len(), v.capacity());
+                    std::mem::forget(v); // insure no double free, now CReturnData is the owner!
                     CReturnData {
-                        pubkey: pubkey as *const Pubkey as *const u8,
-                        data_ptr: data.as_ptr(),
-                        data_len: data.len(),
+                        pubkey,
+                        data_ptr,
+                        data_len,
+                        cap,
                         has_data: true,
                     }
                 } else {
                     CReturnData {
-                        pubkey: std::ptr::null(),
+                        pubkey: Pubkey::new_from_array([0 as u8; 32]),
                         data_ptr: std::ptr::null(),
                         data_len: 0,
+                        cap: 0,
                         has_data: false,
                     }
                 }
@@ -272,9 +277,11 @@ macro_rules! common_stub_types {
                 if self.has_data == false {
                     None
                 } else {
-                    let pub_key = unsafe { *(self.pubkey as *const Pubkey) };
-                    let data = unsafe { std::slice::from_raw_parts(self.data_ptr, self.data_len) };
-                    Some((pub_key, data.to_vec()))
+                    let pub_key = self.pubkey;
+                    let vec = unsafe {
+                        Vec::from_raw_parts(self.data_ptr as *mut _, self.data_len, self.cap)
+                    };
+                    Some((pub_key, vec))
                 }
             }
         }
