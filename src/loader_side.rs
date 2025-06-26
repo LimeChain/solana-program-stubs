@@ -188,7 +188,8 @@ macro_rules! declare_sol_loader_stubs {
 
         pub extern "C" fn sol_get_return_data() -> CReturnData {
             let ret_data = SYSCALL_STUBS.read().unwrap().sol_get_return_data();
-            let c_ret_data = CReturnData::from(&ret_data);
+            let rd = ret_data.as_ref().map(|(pubkey, data)| (*pubkey, &data[..]));
+            let c_ret_data = CReturnData::from(&rd);
             c_ret_data
         }
 

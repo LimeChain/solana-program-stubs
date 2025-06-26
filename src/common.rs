@@ -250,7 +250,7 @@ macro_rules! common_stub_types {
         }
 
         impl CReturnData {
-            pub fn from(ret_data: &Option<(Pubkey, Vec<u8>)>) -> CReturnData {
+            pub fn from(ret_data: &Option<(Pubkey, &[u8])>) -> CReturnData {
                 if let Some((pubkey, data)) = ret_data {
                     CReturnData {
                         pubkey: pubkey as *const Pubkey as *const u8,
