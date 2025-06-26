@@ -61,7 +61,8 @@ macro_rules! declare_sol_app_stubs {
                 let cinstr = CInstruction::from(instruction);
                 let (mut caccountinfos, _vcacountinfo) = CAccountInfoSlice::from(&account_infos);
                 let caccountinfos = &mut caccountinfos as *mut _;
-                let cbytesarrayarray = CBytesArrayArray::from(&signers_seeds);
+                let (cbytesarrayarray, _vcbytes, _allcbytes) =
+                    CBytesArrayArray::from(&signers_seeds);
                 for ai in account_infos.iter() {
                     println!("FAV BEFORE ai: {} -> lamports: {}", ai.key, ai.lamports());
                     println!("FAV BEFORE ai: {} -> data.len: {}", ai.key, ai.data_len());

@@ -63,7 +63,13 @@ macro_rules! common_stub_types {
         }
 
         impl<'a> CBytesArrayArray<'a> {
-            pub fn from(input: &'a [&'a [&'a [u8]]]) -> CBytesArrayArray<'a> {
+            pub fn from(
+                input: &'a [&'a [&'a [u8]]],
+            ) -> (
+                CBytesArrayArray<'a>,
+                Vec<CBytesArray<'a>>,
+                Vec<Vec<CBytes<'a>>>,
+            ) {
                 let mut outer = Vec::new();
                 let mut all_cbytes = Vec::new(); // To hold all CBytes flat
 
@@ -88,16 +94,15 @@ macro_rules! common_stub_types {
                 }
 
                 let outer_ptr = outer.as_ptr();
-                // TODO: LEAK IT TO PRESERVE IT! FIX
-                // ensure memory lives
-                outer.leak();
-                all_cbytes.leak();
-
-                CBytesArrayArray {
-                    ptr: outer_ptr,
-                    len: input.len(),
-                    marker: std::marker::PhantomData,
-                }
+                (
+                    CBytesArrayArray {
+                        ptr: outer_ptr,
+                        len: input.len(),
+                        marker: std::marker::PhantomData,
+                    },
+                    outer,
+                    all_cbytes,
+                )
             }
 
             pub fn to_array_array_array(c: &'a CBytesArrayArray) -> Vec<Vec<&'a [u8]>> {
