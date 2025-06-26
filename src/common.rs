@@ -250,34 +250,6 @@ macro_rules! common_stub_types {
         }
 
         #[repr(C)]
-        pub struct SyscallStubsApi {
-            pub sol_log: extern "C" fn(msg_ptr: *const u8, len: usize),
-            pub sol_log_compute_units: extern "C" fn(),
-            pub sol_remaining_compute_units: extern "C" fn() -> u64,
-            pub sol_invoke_signed: extern "C" fn(
-                instruction: CInstruction,
-                account_infos: *mut CAccountInfoSlice,
-                signers_seeds: CBytesArrayArray,
-            ) -> i64,
-            pub sol_get_clock_sysvar: extern "C" fn(var_addr: *mut u8) -> u64,
-            pub sol_get_epoch_schedule_sysvar: extern "C" fn(var_addr: *mut u8) -> u64,
-            pub sol_get_fees_sysvar: extern "C" fn(var_addr: *mut u8) -> u64,
-            pub sol_get_rent_sysvar: extern "C" fn(var_addr: *mut u8) -> u64,
-            pub sol_get_last_restart_slot: extern "C" fn(var_addr: *mut u8) -> u64,
-            pub sol_memcpy: extern "C" fn(dst: *mut u8, src: *const u8, n: usize),
-            pub sol_memmove: extern "C" fn(dst: *mut u8, src: *const u8, n: usize),
-            pub sol_memcmp: extern "C" fn(s1: *const u8, s2: *const u8, n: usize, result: *mut i32),
-            pub sol_memset: extern "C" fn(s: *mut u8, c: u8, n: usize),
-            pub sol_get_return_data: extern "C" fn() -> CReturnData,
-            pub sol_set_return_data: extern "C" fn(data_ptr: *const u8, len: usize),
-            pub sol_log_data: extern "C" fn(data: CBytesArray),
-            pub sol_get_processed_sibling_instruction:
-                extern "C" fn(index: usize) -> OptionCInstructionOwned,
-            pub sol_get_stack_height: extern "C" fn() -> u64,
-            pub sol_get_epoch_rewards_sysvar: extern "C" fn(var_addr: *mut u8) -> u64,
-        }
-
-        #[repr(C)]
         pub struct CReturnData {
             pub pubkey: Pubkey,
             pub data_ptr: *const u8,
@@ -397,6 +369,34 @@ macro_rules! common_stub_types {
                     })
                 }
             }
+        }
+
+        #[repr(C)]
+        pub struct SyscallStubsApi {
+            pub sol_log: extern "C" fn(msg_ptr: *const u8, len: usize),
+            pub sol_log_compute_units: extern "C" fn(),
+            pub sol_remaining_compute_units: extern "C" fn() -> u64,
+            pub sol_invoke_signed: extern "C" fn(
+                instruction: CInstruction,
+                account_infos: *mut CAccountInfoSlice,
+                signers_seeds: CBytesArrayArray,
+            ) -> i64,
+            pub sol_get_clock_sysvar: extern "C" fn(var_addr: *mut u8) -> u64,
+            pub sol_get_epoch_schedule_sysvar: extern "C" fn(var_addr: *mut u8) -> u64,
+            pub sol_get_fees_sysvar: extern "C" fn(var_addr: *mut u8) -> u64,
+            pub sol_get_rent_sysvar: extern "C" fn(var_addr: *mut u8) -> u64,
+            pub sol_get_last_restart_slot: extern "C" fn(var_addr: *mut u8) -> u64,
+            pub sol_memcpy: extern "C" fn(dst: *mut u8, src: *const u8, n: usize),
+            pub sol_memmove: extern "C" fn(dst: *mut u8, src: *const u8, n: usize),
+            pub sol_memcmp: extern "C" fn(s1: *const u8, s2: *const u8, n: usize, result: *mut i32),
+            pub sol_memset: extern "C" fn(s: *mut u8, c: u8, n: usize),
+            pub sol_get_return_data: extern "C" fn() -> CReturnData,
+            pub sol_set_return_data: extern "C" fn(data_ptr: *const u8, len: usize),
+            pub sol_log_data: extern "C" fn(data: CBytesArray),
+            pub sol_get_processed_sibling_instruction:
+                extern "C" fn(index: usize) -> OptionCInstructionOwned,
+            pub sol_get_stack_height: extern "C" fn() -> u64,
+            pub sol_get_epoch_rewards_sysvar: extern "C" fn(var_addr: *mut u8) -> u64,
         }
     };
 }
