@@ -376,7 +376,7 @@ macro_rules! common_stub_types {
         }
 
         impl<'a> From<OptionCInstructionOwned> for Option<Instruction> {
-            fn from(ocio: OptionCInstructionOwned) -> Option<Instruction> {
+            fn from(ocio: OptionCInstructionOwned) -> Self {
                 if ocio.is_some == false {
                     None
                 } else {
