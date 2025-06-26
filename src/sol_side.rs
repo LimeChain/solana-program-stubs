@@ -37,7 +37,8 @@ macro_rules! declare_sol_app_stubs {
             }
             fn sol_get_return_data(&self) -> Option<(Pubkey, Vec<u8>)> {
                 println!("sol_get_return_data called!");
-                unimplemented!()
+                let c_ret_data = (self.stubs_api.sol_get_return_data)();
+                c_ret_data.to_ret_data()
             }
             fn sol_get_stack_height(&self) -> u64 {
                 (self.stubs_api.sol_get_stack_height)()

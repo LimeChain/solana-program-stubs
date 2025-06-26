@@ -186,9 +186,10 @@ macro_rules! declare_sol_loader_stubs {
             }
         }
 
-        // TODO
-        pub extern "C" fn sol_get_return_data() -> Option<(Pubkey, Vec<u8>)> {
-            SYSCALL_STUBS.read().unwrap().sol_get_return_data()
+        pub extern "C" fn sol_get_return_data() -> CReturnData {
+            let ret_data = SYSCALL_STUBS.read().unwrap().sol_get_return_data();
+            let c_ret_data = CReturnData::from(&ret_data);
+            c_ret_data
         }
 
         pub extern "C" fn sol_set_return_data(data_ptr: *const u8, len: usize) {
@@ -237,6 +238,7 @@ macro_rules! declare_sol_loader_stubs {
                     sol_memmove: sol_memmove,
                     sol_memset: sol_memset,
                     sol_remaining_compute_units: sol_remaining_compute_units,
+                    sol_get_return_data: sol_get_return_data,
                     sol_set_return_data: sol_set_return_data,
                     sol_invoke_signed: sol_invoke_signed,
                 }

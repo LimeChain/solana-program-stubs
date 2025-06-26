@@ -233,12 +233,50 @@ macro_rules! common_stub_types {
             pub sol_memmove: extern "C" fn(dst: *mut u8, src: *const u8, n: usize),
             pub sol_memcmp: extern "C" fn(s1: *const u8, s2: *const u8, n: usize, result: *mut i32),
             pub sol_memset: extern "C" fn(s: *mut u8, c: u8, n: usize),
-            // pub sol_get_return_data: extern "C" fn() -> Option<(Pubkey, Vec<u8>)>,
+            pub sol_get_return_data: extern "C" fn() -> CReturnData,
             pub sol_set_return_data: extern "C" fn(data_ptr: *const u8, len: usize),
             // pub sol_log_data: extern "C" fn(data: &[&[u8]]),
             // pub sol_get_processed_sibling_instruction: extern "C" fn(index: usize) -> Option<Instruction>,
             pub sol_get_stack_height: extern "C" fn() -> u64,
             pub sol_get_epoch_rewards_sysvar: extern "C" fn(var_addr: *mut u8) -> u64,
+        }
+
+        #[repr(C)]
+        pub struct CReturnData {
+            pub pubkey: *const u8,
+            pub data_ptr: *const u8,
+            pub data_len: usize,
+            pub has_data: bool, // whether return data exists
+        }
+
+        impl CReturnData {
+            pub fn from(ret_data: &Option<(Pubkey, Vec<u8>)>) -> CReturnData {
+                if let Some((pubkey, data)) = ret_data {
+                    CReturnData {
+                        pubkey: pubkey as *const Pubkey as *const u8,
+                        data_ptr: data.as_ptr(),
+                        data_len: data.len(),
+                        has_data: true,
+                    }
+                } else {
+                    CReturnData {
+                        pubkey: std::ptr::null(),
+                        data_ptr: std::ptr::null(),
+                        data_len: 0,
+                        has_data: false,
+                    }
+                }
+            }
+
+            pub fn to_ret_data(&self) -> Option<(Pubkey, Vec<u8>)> {
+                if self.has_data == false {
+                    None
+                } else {
+                    let pub_key = unsafe { *(self.pubkey as *const Pubkey) };
+                    let data = unsafe { std::slice::from_raw_parts(self.data_ptr, self.data_len) };
+                    Some((pub_key, data.to_vec()))
+                }
+            }
         }
     };
 }
