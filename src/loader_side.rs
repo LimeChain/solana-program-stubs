@@ -202,12 +202,13 @@ macro_rules! declare_sol_loader_stubs {
             SYSCALL_STUBS.read().unwrap().sol_log_data(&arr_arr[..])
         }
 
-        // TODO
-        pub extern "C" fn sol_get_processed_sibling_instruction(index: usize) -> Option<Instruction> {
-            SYSCALL_STUBS
+        pub extern "C" fn sol_get_processed_sibling_instruction(index: usize) -> OptionCInstructionOwned {
+            let opt_instr = SYSCALL_STUBS
                 .read()
                 .unwrap()
-                .sol_get_processed_sibling_instruction(index)
+                .sol_get_processed_sibling_instruction(index);
+            let c_opt_instr_owned = OptionCInstructionOwned::from(opt_instr);
+            c_opt_instr_owned
         }
 
         pub extern "C" fn sol_get_stack_height() -> u64 {
@@ -242,6 +243,7 @@ macro_rules! declare_sol_loader_stubs {
                     sol_set_return_data: sol_set_return_data,
                     sol_log_data: sol_log_data,
                     sol_invoke_signed: sol_invoke_signed,
+                    sol_get_processed_sibling_instruction: sol_get_processed_sibling_instruction,
                 }
             }
         }

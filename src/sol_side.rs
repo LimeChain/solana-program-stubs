@@ -27,10 +27,12 @@ macro_rules! declare_sol_app_stubs {
             }
             fn sol_get_processed_sibling_instruction(
                 &self,
-                _index: usize,
+                index: usize,
             ) -> Option<solana_program::instruction::Instruction> {
                 println!("sol_get_processed_sibling_instruction called!");
-                unimplemented!()
+                let c_opt_instr_owned =
+                    (self.stubs_api.sol_get_processed_sibling_instruction)(index);
+                c_opt_instr_owned.into()
             }
             fn sol_get_rent_sysvar(&self, var_addr: *mut u8) -> u64 {
                 (self.stubs_api.sol_get_rent_sysvar)(var_addr)

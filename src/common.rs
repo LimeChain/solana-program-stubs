@@ -271,7 +271,8 @@ macro_rules! common_stub_types {
             pub sol_get_return_data: extern "C" fn() -> CReturnData,
             pub sol_set_return_data: extern "C" fn(data_ptr: *const u8, len: usize),
             pub sol_log_data: extern "C" fn(data: CBytesArray),
-            // pub sol_get_processed_sibling_instruction: extern "C" fn(index: usize) -> Option<Instruction>,
+            pub sol_get_processed_sibling_instruction:
+                extern "C" fn(index: usize) -> OptionCInstructionOwned,
             pub sol_get_stack_height: extern "C" fn() -> u64,
             pub sol_get_epoch_rewards_sysvar: extern "C" fn(var_addr: *mut u8) -> u64,
         }
@@ -317,6 +318,83 @@ macro_rules! common_stub_types {
                         Vec::from_raw_parts(self.data_ptr as *mut _, self.data_len, self.cap)
                     };
                     Some((pub_key, vec))
+                }
+            }
+        }
+
+        #[repr(C)]
+        pub struct OptionCInstructionOwned {
+            pub program_id: Pubkey,
+            pub accounts_ptr: *const AccountMeta,
+            pub accounts_len: usize,
+            pub accounts_cap: usize,
+            pub data_ptr: *const u8,
+            pub data_len: usize,
+            pub data_cap: usize,
+            pub is_some: bool,
+        }
+
+        impl<'a> From<Option<Instruction>> for OptionCInstructionOwned {
+            fn from(instruction: Option<Instruction>) -> Self {
+                if let Some(mut instr) = instruction {
+                    // take accounts leaving an empty vec in its place.
+                    let accounts = std::mem::take(&mut instr.accounts);
+                    let (accounts_ptr, accounts_len, accounts_cap) = (
+                        instr.accounts.as_ptr(),
+                        instr.accounts.len(),
+                        instr.accounts.capacity(),
+                    );
+                    // insure no double free, OptionCInstructionOwned is the owner now.
+                    std::mem::forget(accounts);
+                    let data = std::mem::take(&mut instr.data);
+                    let (data_ptr, data_len, data_cap) =
+                        (instr.data.as_ptr(), instr.data.len(), instr.data.capacity());
+                    std::mem::forget(data);
+                    OptionCInstructionOwned {
+                        program_id: instr.program_id,
+                        accounts_ptr,
+                        accounts_len,
+                        accounts_cap,
+                        data_ptr,
+                        data_len,
+                        data_cap,
+                        is_some: true,
+                    }
+                } else {
+                    OptionCInstructionOwned {
+                        program_id: Pubkey::new_from_array([0 as u8; 32]),
+                        accounts_ptr: std::ptr::null(),
+                        accounts_cap: 0,
+                        accounts_len: 0,
+                        data_ptr: std::ptr::null(),
+                        data_cap: 0,
+                        data_len: 0,
+                        is_some: false,
+                    }
+                }
+            }
+        }
+
+        impl<'a> From<OptionCInstructionOwned> for Option<Instruction> {
+            fn from(ocio: OptionCInstructionOwned) -> Option<Instruction> {
+                if ocio.is_some == false {
+                    None
+                } else {
+                    let accounts: Vec<AccountMeta> = unsafe {
+                        Vec::from_raw_parts(
+                            ocio.accounts_ptr as *mut _,
+                            ocio.accounts_len,
+                            ocio.accounts_cap,
+                        )
+                    };
+                    let data: Vec<u8> = unsafe {
+                        Vec::from_raw_parts(ocio.data_ptr as *mut _, ocio.data_len, ocio.data_cap)
+                    };
+                    Some(Instruction {
+                        program_id: ocio.program_id,
+                        accounts,
+                        data,
+                    })
                 }
             }
         }
