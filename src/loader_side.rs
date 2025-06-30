@@ -203,10 +203,12 @@ macro_rules! declare_sol_loader_stubs {
         }
 
         pub extern "C" fn sol_get_processed_sibling_instruction(index: usize) -> OptionCInstructionOwned {
+            println!("in EXTERN C addr of SYSCALL_STUBS: {:p}", &SYSCALL_STUBS);
             let opt_instr = SYSCALL_STUBS
                 .read()
                 .unwrap()
                 .sol_get_processed_sibling_instruction(index);
+            println!("sol_get_processed_sibling_instruction() in loader: {:?}", opt_instr);
             let c_opt_instr_owned = OptionCInstructionOwned::from(opt_instr);
             c_opt_instr_owned
         }

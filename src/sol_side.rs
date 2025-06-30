@@ -32,7 +32,9 @@ macro_rules! declare_sol_app_stubs {
                 println!("sol_get_processed_sibling_instruction called!");
                 let c_opt_instr_owned =
                     (self.stubs_api.sol_get_processed_sibling_instruction)(index);
-                c_opt_instr_owned.into()
+                let instr = c_opt_instr_owned.into();
+                println!("SOL APP: {:?}", instr);
+                instr
             }
             fn sol_get_rent_sysvar(&self, var_addr: *mut u8) -> u64 {
                 (self.stubs_api.sol_get_rent_sysvar)(var_addr)

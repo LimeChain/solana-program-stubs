@@ -311,16 +311,13 @@ macro_rules! common_stub_types {
                 if let Some(mut instr) = instruction {
                     // take accounts leaving an empty vec in its place.
                     let accounts = std::mem::take(&mut instr.accounts);
-                    let (accounts_ptr, accounts_len, accounts_cap) = (
-                        instr.accounts.as_ptr(),
-                        instr.accounts.len(),
-                        instr.accounts.capacity(),
-                    );
+                    let (accounts_ptr, accounts_len, accounts_cap) =
+                        (accounts.as_ptr(), accounts.len(), accounts.capacity());
                     // insure no double free, OptionCInstructionOwned is the owner now.
                     std::mem::forget(accounts);
                     let data = std::mem::take(&mut instr.data);
                     let (data_ptr, data_len, data_cap) =
-                        (instr.data.as_ptr(), instr.data.len(), instr.data.capacity());
+                        (data.as_ptr(), data.len(), data.capacity());
                     std::mem::forget(data);
                     OptionCInstructionOwned {
                         program_id: instr.program_id,
