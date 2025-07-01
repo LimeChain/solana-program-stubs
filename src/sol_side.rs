@@ -11,7 +11,7 @@ macro_rules! declare_sol_app_stubs {
             pub stubs_api: SyscallStubsApi,
         }
 
-        impl solana_program::program_stubs::SyscallStubs for SolAppSyscallStubs {
+        impl SyscallStubs for SolAppSyscallStubs {
             fn sol_get_clock_sysvar(&self, var_addr: *mut u8) -> u64 {
                 (self.stubs_api.sol_get_clock_sysvar)(var_addr)
             }
@@ -27,10 +27,7 @@ macro_rules! declare_sol_app_stubs {
             fn sol_get_last_restart_slot(&self, var_addr: *mut u8) -> u64 {
                 (self.stubs_api.sol_get_last_restart_slot)(var_addr)
             }
-            fn sol_get_processed_sibling_instruction(
-                &self,
-                index: usize,
-            ) -> Option<solana_program::instruction::Instruction> {
+            fn sol_get_processed_sibling_instruction(&self, index: usize) -> Option<Instruction> {
                 println!("sol_get_processed_sibling_instruction called!");
                 let c_opt_instr_owned =
                     (self.stubs_api.sol_get_processed_sibling_instruction)(index);
@@ -51,10 +48,10 @@ macro_rules! declare_sol_app_stubs {
             }
             fn sol_invoke_signed(
                 &self,
-                instruction: &solana_program::instruction::Instruction,
+                instruction: &Instruction,
                 account_infos: &[AccountInfo],
                 signers_seeds: &[&[&[u8]]],
-            ) -> solana_program::entrypoint::ProgramResult {
+            ) -> ProgramResult {
                 println!("sol_invoke_signed called!");
                 println!("FAV: instruction {:#?}", instruction);
                 println!("FAV: signers: {:#?}", signers_seeds);
@@ -143,10 +140,8 @@ macro_rules! declare_sol_app_stubs {
         pub extern "C" fn set_stubs(stubs_api: SyscallStubsApi) {
             println!("Calling set_stubs!");
             let stubs = Box::new(SolAppSyscallStubs { stubs_api });
-            let _ = solana_program::program_stubs::set_syscall_stubs(stubs);
-            // let _ = solana_program::program_stubs::set_syscall_stubs(Box::new(
-            //     solana_program_test::SyscallStubs {},
-            // ));
+            let _ = set_syscall_stubs(stubs);
+            // let _ = set_syscall_stubs(Box::new(SyscallStubs {}));
         }
 
         #[no_mangle]
