@@ -1,4 +1,7 @@
+#![allow(unexpected_cfgs)]
+
 #[macro_export]
+#[cfg(not(target_os = "solana"))]
 macro_rules! declare_sol_app_stubs {
     ($entry_function:expr) => {
         $crate::common_stub_types!();
@@ -8,7 +11,6 @@ macro_rules! declare_sol_app_stubs {
             pub stubs_api: SyscallStubsApi,
         }
 
-        #[cfg(not(target_os = "solana"))]
         impl solana_program::program_stubs::SyscallStubs for SolAppSyscallStubs {
             fn sol_get_clock_sysvar(&self, var_addr: *mut u8) -> u64 {
                 (self.stubs_api.sol_get_clock_sysvar)(var_addr)
@@ -137,7 +139,6 @@ macro_rules! declare_sol_app_stubs {
             }
         }
 
-        #[cfg(not(target_os = "solana"))]
         #[no_mangle]
         pub extern "C" fn set_stubs(stubs_api: SyscallStubsApi) {
             println!("Calling set_stubs!");

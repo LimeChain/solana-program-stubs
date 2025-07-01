@@ -1,7 +1,12 @@
 [package]
-name = "sol-stubs"
+name = "solana-program-stubs"
 version = "0.1.0"
 edition = "2021"
+
+[features]
+loader_stubs = []
+sol_app_stubs = []
+default = [ "sol_app_stubs" ]
 
 [dependencies]
 lazy_static = "1.5.0"
