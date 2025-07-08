@@ -123,10 +123,13 @@ macro_rules! declare_sol_loader_stubs {
                 println!("AFTER ai: {} -> lamports: {}", ai.key, ai.lamports());
                 println!("AFTER ai: {} -> data.len: {}", ai.key, ai.data_len());
                 println!("AFTER ai: {} -> data.ptr: {:p}", ai.key, ai.data.as_ptr());
-                // Update the data len since after the transaction it might have changed.
+                // Update the data len and the lamports since after the transaction they might have changed.
                 // We'll use this new len in the caller's code to have it update there as well.
                 let cai: *mut CAccountInfo = unsafe { (*caccount_infos).ptr.add(i) } as *mut _;
-                unsafe { (*cai).data_len = ai.data_len() };
+                unsafe {
+                    *(*cai).lamports = ai.lamports();
+                    (*cai).data_len = ai.data_len();
+                };
             }
 
             let res = if res.is_ok() { 0 } else { -1 };

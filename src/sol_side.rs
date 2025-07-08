@@ -92,11 +92,14 @@ macro_rules! declare_sol_app_stubs {
                     let data_ptr = (*ai.data.borrow_mut()).as_mut_ptr();
                     let data_len = unsafe { (*cai).data_len };
                     let new_slice = unsafe { std::slice::from_raw_parts_mut(data_ptr, data_len) };
+                    let new_lamports = unsafe { *(*cai).lamports };
                     println!(
                         "Data's len has changed to new_slice.len(): {}",
                         new_slice.len()
                     );
+                    println!("Lamports have changed to: {}", new_lamports);
                     (*ai.data.borrow_mut()) = new_slice;
+                    (**ai.lamports.borrow_mut()) = new_lamports;
                 }
                 println!("DONE!");
                 Ok(())
