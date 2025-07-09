@@ -217,7 +217,7 @@ macro_rules! common_stub_types {
                 (slice, c_infos)
             }
 
-            pub fn to_vec_account_infos(
+            pub unsafe fn to_vec_account_infos(
                 slice: *mut CAccountInfoSlice<'a, 'b>,
             ) -> Vec<AccountInfo<'b>> {
                 let mut result = unsafe { Vec::with_capacity((*slice).len) };

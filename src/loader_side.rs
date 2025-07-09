@@ -99,7 +99,7 @@ macro_rules! declare_sol_loader_stubs {
             let instruction = Instruction::from(cinstruction);
             let signers_seeds = CBytesArrayArray::to_array_array_array(&csigners_seeds);
             let signers_seeds = &CBytesArrayArray::convert(&signers_seeds)[..];
-            let account_infos = &CAccountInfoSlice::to_vec_account_infos(caccount_infos)[..];
+            let account_infos = unsafe { &CAccountInfoSlice::to_vec_account_infos(caccount_infos)[..] };
 
             println!("instruction {:#?}", instruction);
             println!("signers: {:#?}", signers_seeds);
