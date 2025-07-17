@@ -7,7 +7,8 @@ macro_rules! declare_sol_loader_stubs {
         pub use lazy_static;
 
         lazy_static::lazy_static! {
-            pub static ref SYSCALL_STUBS: Arc<RwLock<Box<dyn SyscallStubs>>> = Arc::new(RwLock::new(Box::new(UnimplementedSyscallStubs {})));
+            pub static ref SYSCALL_STUBS: Arc<RwLock<Box<dyn SyscallStubs>>> =
+                Arc::new(RwLock::new(Box::new(UnimplementedSyscallStubs {})));
         }
 
         pub struct UnimplementedSyscallStubs {}
@@ -57,7 +58,13 @@ macro_rules! declare_sol_loader_stubs {
             fn sol_log_data(&self, _fields: &[&[u8]]) {
                 unimplemented!()
             }
-            unsafe fn sol_memcmp(&self, _s1: *const u8, _s2: *const u8, _n: usize, _result: *mut i32) {
+            unsafe fn sol_memcmp(
+                &self,
+                _s1: *const u8,
+                _s2: *const u8,
+                _n: usize,
+                _result: *mut i32,
+            ) {
                 unimplemented!()
             }
             unsafe fn sol_memcpy(&self, _dst: *mut u8, _src: *const u8, _n: usize) {
@@ -99,7 +106,8 @@ macro_rules! declare_sol_loader_stubs {
             let instruction = Instruction::from(cinstruction);
             let signers_seeds = CBytesArrayArray::to_array_array_array(&csigners_seeds);
             let signers_seeds = &CBytesArrayArray::convert(&signers_seeds)[..];
-            let account_infos = unsafe { &CAccountInfoSlice::to_vec_account_infos(caccount_infos)[..] };
+            let account_infos =
+                unsafe { &CAccountInfoSlice::to_vec_account_infos(caccount_infos)[..] };
 
             println!("instruction {:#?}", instruction);
             println!("signers: {:#?}", signers_seeds);
@@ -115,7 +123,8 @@ macro_rules! declare_sol_loader_stubs {
                 account_infos,
                 &signers_seeds,
             );
-            let post_tx_data_ptrs: Vec<_> = account_infos.iter().map(|ai| ai.data.as_ptr()).collect();
+            let post_tx_data_ptrs: Vec<_> =
+                account_infos.iter().map(|ai| ai.data.as_ptr()).collect();
             // If these mismatch we'll have to find out why and fix it.
             assert!(data_ptrs == post_tx_data_ptrs);
 
@@ -205,13 +214,18 @@ macro_rules! declare_sol_loader_stubs {
             SYSCALL_STUBS.read().unwrap().sol_log_data(&arr_arr[..])
         }
 
-        pub extern "C" fn sol_get_processed_sibling_instruction(index: usize) -> OptionCInstructionOwned {
+        pub extern "C" fn sol_get_processed_sibling_instruction(
+            index: usize,
+        ) -> OptionCInstructionOwned {
             println!("in EXTERN C addr of SYSCALL_STUBS: {:p}", &SYSCALL_STUBS);
             let opt_instr = SYSCALL_STUBS
                 .read()
                 .unwrap()
                 .sol_get_processed_sibling_instruction(index);
-            println!("sol_get_processed_sibling_instruction() in loader: {:?}", opt_instr);
+            println!(
+                "sol_get_processed_sibling_instruction() in loader: {:?}",
+                opt_instr
+            );
             let c_opt_instr_owned = OptionCInstructionOwned::from(opt_instr);
             c_opt_instr_owned
         }
@@ -264,13 +278,13 @@ macro_rules! declare_sol_loader_stubsv2 {
         pub use lazy_static;
 
         lazy_static::lazy_static! {
-            pub static ref SYSCALL_STUBS: Arc<RwLock<Box<dyn SyscallStubs>>> = Arc::new(RwLock::new(Box::new(UnimplementedSyscallStubs {})));
+            pub static ref SYSCALL_STUBS: Arc<RwLock<Box<dyn SyscallStubs>>> =
+                Arc::new(RwLock::new(Box::new(UnimplementedSyscallStubs {})));
         }
 
         pub struct UnimplementedSyscallStubs {}
         impl SyscallStubs for UnimplementedSyscallStubs {
             fn sol_get_clock_sysvar(&self, _var_addr: *mut u8) -> u64 {
-                println!("Oooops! Unimplemented sol_get_clock_sysvar");
                 unimplemented!()
             }
             fn sol_get_epoch_rewards_sysvar(&self, _var_addr: *mut u8) -> u64 {
@@ -314,7 +328,13 @@ macro_rules! declare_sol_loader_stubsv2 {
             fn sol_log_data(&self, _fields: &[&[u8]]) {
                 unimplemented!()
             }
-            unsafe fn sol_memcmp(&self, _s1: *const u8, _s2: *const u8, _n: usize, _result: *mut i32) {
+            unsafe fn sol_memcmp(
+                &self,
+                _s1: *const u8,
+                _s2: *const u8,
+                _n: usize,
+                _result: *mut i32,
+            ) {
                 unimplemented!()
             }
             unsafe fn sol_memcpy(&self, _dst: *mut u8, _src: *const u8, _n: usize) {
@@ -454,7 +474,11 @@ macro_rules! declare_sol_loader_stubsv2 {
         }
 
         #[no_mangle]
-        pub extern "C" fn sol_get_return_data(data: *mut u8, length: u64, program_id: *mut CPubkey) -> u64 {
+        pub extern "C" fn sol_get_return_data(
+            data: *mut u8,
+            length: u64,
+            program_id: *mut CPubkey,
+        ) -> u64 {
             let ret_data = SYSCALL_STUBS.read().unwrap().sol_get_return_data();
 
             match ret_data {
@@ -541,8 +565,9 @@ macro_rules! declare_sol_loader_stubsv2 {
                             let account_meta = accounts.add(i);
                             (*account_meta).is_signer = instr.accounts[i].is_signer;
                             (*account_meta).is_writable = instr.accounts[i].is_writable;
-                            (*account_meta).pubkey =
-                                Box::leak(Box::new(instr.accounts[i].pubkey)) as *const _ as *const CPubkey;
+                            (*account_meta).pubkey = Box::leak(Box::new(instr.accounts[i].pubkey))
+                                as *const _
+                                as *const CPubkey;
                         }
                     }
                     2 // 2 - All good.
@@ -576,7 +601,8 @@ macro_rules! declare_sol_loader_stubsv2 {
                             .collect()
                     },
                     data: {
-                        let slice = std::slice::from_raw_parts((*cinstr).data, (*cinstr).data_len as _);
+                        let slice =
+                            std::slice::from_raw_parts((*cinstr).data, (*cinstr).data_len as _);
                         slice.to_vec()
                     },
                 }
@@ -594,8 +620,10 @@ macro_rules! declare_sol_loader_stubsv2 {
                             &mut *((*cai).lamports as *mut _),
                         )),
                         data: {
-                            let slice =
-                                std::slice::from_raw_parts_mut((*cai).data as _, (*cai).data_len as _);
+                            let slice = std::slice::from_raw_parts_mut(
+                                (*cai).data as _,
+                                (*cai).data_len as _,
+                            );
                             std::rc::Rc::new(std::cell::RefCell::new(slice))
                         },
                         owner: &*((*cai).owner as *const Pubkey),
@@ -617,7 +645,8 @@ macro_rules! declare_sol_loader_stubsv2 {
                 for p in 0..q_data_len {
                     let p_fat_ptr = q_data_ptr as *const (*const u8, u64);
                     let (p_data_ptr, p_data_len) = unsafe { *p_fat_ptr.add(p as _) };
-                    let slice = unsafe { std::slice::from_raw_parts(p_data_ptr, p_data_len as usize) };
+                    let slice =
+                        unsafe { std::slice::from_raw_parts(p_data_ptr, p_data_len as usize) };
                     pv.push(slice);
                 }
                 qv.push(pv);

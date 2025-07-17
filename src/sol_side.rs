@@ -361,7 +361,6 @@ macro_rules! declare_sol_app_stubsv2 {
 
         #[no_mangle]
         pub extern "C" fn set_stubs(stubs_api2: SyscallStubsApi2) {
-            println!("Calling set_stubs - v2!");
             let stubs = Box::new(SolAppSyscallStubs2 { stubs_api2 });
             let _ = set_syscall_stubs(stubs);
         }
