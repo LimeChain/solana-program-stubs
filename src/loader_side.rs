@@ -1,8 +1,9 @@
-/// This macro exports a global alternative container v2 to ProgramTest's SYSCALL_STUBS
+/// This macro exports a global alternative container to ProgramTest's SYSCALL_STUBS
+/// necessary at loader.
 #[macro_export]
-macro_rules! declare_sol_loader_stubsv2 {
+macro_rules! declare_sol_loader_stubs {
     () => {
-        $crate::common_stub_typesv2!();
+        $crate::common_stub_types!();
 
         pub use lazy_static;
 
@@ -406,7 +407,7 @@ macro_rules! declare_sol_loader_stubsv2 {
             SYSCALL_STUBS.read().unwrap().sol_log(&pubkey.to_string());
         }
 
-        impl SyscallStubsApi2 {
+        impl SyscallStubsApi {
             pub fn new() -> Self {
                 Self {
                     sol_get_clock_sysvar: sol_get_clock_sysvar,

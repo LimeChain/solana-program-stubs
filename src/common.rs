@@ -1,5 +1,6 @@
+/// A macro providing the common types for both a Solana program and a loader of it.
 #[macro_export]
-macro_rules! common_stub_typesv2 {
+macro_rules! common_stub_types {
     () => {
         pub const PUBKEY_BYTES: usize = 32;
         #[repr(C)]
@@ -118,7 +119,7 @@ macro_rules! common_stub_typesv2 {
         }
 
         #[repr(C)]
-        pub struct SyscallStubsApi2 {
+        pub struct SyscallStubsApi {
             pub sol_log_: extern "C" fn(message: *const u8, len: u64),
             pub sol_log_compute_units_: extern "C" fn(),
             pub sol_remaining_compute_units: extern "C" fn() -> u64,
