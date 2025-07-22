@@ -3,7 +3,7 @@ name = "solana-program-stubs"
 version = "0.1.0"
 edition = "2021"
 license = "MIT"
-repository = "https://github.com/procdump/sol-stubs.git"
+repository = "https://github.com/LimeChain/solana-program-stubs.git"
 readme = "README.md"
 
 [features]
