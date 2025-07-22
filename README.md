@@ -9,7 +9,7 @@ The logic is split into two sides:
 ## Features
 
 - loader_stubs: provides stubs at the loader application embedded in [LiteSVM's](https://github.com/LiteSVM/litesvm) coverage functionality.
-- sol_app_stubs (default): provides macros for stubs on the Solana program side. For Anchor programs check [solana-coverage](https://github.com/procdump/solana-coverage).
+- sol_app_stubs (default): provides macros for stubs on the Solana program side. For Anchor programs check [solana-coverage](https://github.com/LimeChain/solana-coverage).
 
 ## License
 
