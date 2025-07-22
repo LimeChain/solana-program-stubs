@@ -2,6 +2,7 @@
 name = "solana-program-stubs"
 version = "0.1.0"
 edition = "2021"
+license = "MIT"
 
 [features]
 loader_stubs = []
