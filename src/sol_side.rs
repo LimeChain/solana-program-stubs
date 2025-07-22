@@ -4,7 +4,7 @@
 #[macro_export]
 #[cfg(not(target_os = "solana"))]
 macro_rules! declare_sol_app_stubs {
-    ($entry_function:expr) => {
+    () => {
         $crate::common_stub_types!();
 
         #[repr(C)]
